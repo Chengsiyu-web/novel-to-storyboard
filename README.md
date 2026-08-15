@@ -30,6 +30,7 @@
 - **Asset-aware**: Binds character, scene, and prop assets to each shot for downstream production pipelines
 - **OpenAI-compatible**: Works with any OpenAI-compatible API (OpenAI, Azure, Claude via proxy, local LLMs)
 - **CLI-first**: Zero-config command line tool with intermediate result saving for debugging
+- **Web UI included**: Streamlit frontend for interactive use — deploy to Streamlit Cloud for free public hosting
 
 ---
 
@@ -43,7 +44,11 @@ cd novel-to-storyboard
 pip install -r requirements.txt
 ```
 
-### Set API Key
+### Configure API Key
+
+This tool requires an LLM API key to generate storyboards. **We do not provide or proxy API keys** — you use your own, and all API costs are billed to your account.
+
+**Option 1: Environment variable (recommended for CLI)**
 
 ```bash
 export OPENAI_API_KEY="sk-..."
@@ -51,7 +56,43 @@ export OPENAI_API_KEY="sk-..."
 export OPENAI_BASE_URL="https://your-provider.com/v1"
 ```
 
-### Run
+**Option 2: `.env` file (recommended for local development)**
+
+```bash
+cp .env.example .env
+# Edit .env and add your key
+```
+
+**Option 3: Enter directly in the Web UI**
+
+If using the Streamlit interface, paste your key in the sidebar. It is used only for your session and never stored.
+
+### Usage
+
+#### 🖥️ Web UI (Recommended for first-time users)
+
+Launch the interactive web interface:
+
+```bash
+streamlit run app.py
+```
+
+Then open http://localhost:8501 in your browser.
+
+Features:
+- Paste text directly, no file handling needed
+- Visual shot preview with expandable scenes
+- Download generated JSON with one click
+- Load example data instantly for testing
+
+**Deploy to Streamlit Cloud (free hosting):**
+
+1. Fork this repo on GitHub
+2. Go to [share.streamlit.io](https://share.streamlit.io) and connect your GitHub account
+3. Select this repo and click **Deploy**
+4. Share the public URL with anyone — they just need their own API key
+
+#### ⌨️ CLI (For power users & automation)
 
 ```bash
 # Minimal — text only
@@ -271,7 +312,7 @@ print('All prompt templates loaded successfully')
 - [ ] Add JSON Schema validation for intermediate outputs
 - [ ] Support non-OpenAI providers (Claude, Gemini) natively
 - [ ] Add `--format` option for output (JSON / CSV / FCPXML)
-- [ ] Web UI for interactive editing of generated storyboards
+- [x] Web UI for interactive editing of generated storyboards
 - [ ] Integration with ComfyUI / Stable Video Diffusion workflows
 
 ---

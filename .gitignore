@@ -22,9 +22,14 @@ output/
 *.swp
 *.swo
 
-# Environment
+# Environment (actual config files — never commit these)
 .env
-.env.*
+.env.local
+.env.production
+.env.development
+
+# But DO commit the example template
+!.env.example
 
 # OS
 .DS_Store

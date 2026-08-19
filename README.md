@@ -1,8 +1,8 @@
 <div align="center">
 
 <h1>📖 → 🎬 novel-to-storyboard</h1>
-<p><strong>Text → Structured Storyboard via 3-Call LLM Pipeline</strong></p>
-<p>Automated pre-production pipeline for AI video generation. Convert novel prose or script text into production-ready shot lists with camera language, asset bindings, and timing constraints.</p>
+<p><strong>扔进去一段小说，吐出来一份分镜表</strong></p>
+<p>做 AI 视频的前置流水线。把小说正文或剧本丢进去，自动拆成带镜头语言、资产绑定、时长的结构化分镜，直接拿去生产。</p>
 
 <p>
   <a href="https://github.com/Chengsiyu-web/novel-to-storyboard/blob/main/LICENSE"><img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="License: MIT"></a>
@@ -11,32 +11,33 @@
 </p>
 
 <p>
-  <a href="#quick-start">Quick Start</a> •
-  <a href="#architecture">Architecture</a> •
-  <a href="#output-format">Output Format</a> •
-  <a href="#roadmap">Roadmap</a>
+  <a href="#快速上手">快速上手</a> •
+  <a href="#怎么工作的">怎么工作的</a> •
+  <a href="#输出长什么样">输出长什么样</a> •
+  <a href="#路线图">路线图</a>
 </p>
 
 </div>
 
 ---
 
-## 🌟 Features
+## 这玩意能干嘛
 
-- **Three-stage LLM pipeline** with single-responsibility prompting — each call handles one cognitive task
-- **Scene group splitting** (Call 1): Detects act boundaries, emotional arcs, and reformats prose into screenplay format
-- **Shot splitting** (Call 2): Merge-first heuristic (`能合就合`) with strict 4–15 second duration bounds per shot
-- **Visual detail generation** (Call 3): Camera language per sub-shot `[景别·构图·机位·运镜·时长s]`, spatial blocking snapshots, asset ID binding
-- **Asset-aware**: Binds character, scene, and prop assets to each shot for downstream production pipelines
-- **OpenAI-compatible**: Works with any OpenAI-compatible API (OpenAI, Azure, Claude via proxy, local LLMs)
-- **CLI-first**: Zero-config command line tool with intermediate result saving for debugging
-- **Web UI included**: Streamlit frontend for interactive use — deploy to Streamlit Cloud for free public hosting
+写小说的人和做 AI 视频的人之间，隔了一个「分镜」的鸿沟。这个项目就是填这个沟的：
+
+- **三段式 LLM 流水线** —— 每次只干一件事，不贪多
+- **第一步拆场景**：自动找幕边界、情绪转折点，把散文改成剧本格式
+- **第二步拆镜头**：遵循「能合就合」原则，每个镜头 4–15 秒，超长的自动跨镜收尾
+- **第三步补画面**：给每个子镜头标上 `[景别·构图·机位·运镜·时长s]`，还有空间走位和资产绑定
+- **支持资产绑定**：角色、场景、道具可以预定义，输出里直接带 ID，下游直接认
+- **兼容任意 OpenAI 风格 API**：OpenAI、Azure、Claude 代理、本地模型都能接
+- **CLI + Web UI 双模式**：命令行适合批处理和自动化，Streamlit 界面适合随手试试
 
 ---
 
-## 📦 Quick Start
+## 快速上手
 
-### Installation
+### 装起来
 
 ```bash
 git clone https://github.com/Chengsiyu-web/novel-to-storyboard.git
@@ -44,143 +45,133 @@ cd novel-to-storyboard
 pip install -r requirements.txt
 ```
 
-### Configure API Key
+### 配 API 密钥
 
-This tool requires an LLM API key to generate storyboards. **We do not provide or proxy API keys** — you use your own, and all API costs are billed to your account.
-
-**Option 1: Environment variable (recommended for CLI)**
+**方式一：环境变量（推荐 CLI 用）**
 
 ```bash
 export OPENAI_API_KEY="sk-..."
-# Optional: custom base URL for compatible providers
+# 如果用第三方代理，再加这个
 export OPENAI_BASE_URL="https://your-provider.com/v1"
 ```
 
-**Option 2: `.env` file (recommended for local development)**
+**方式二：`.env` 文件（推荐本地开发）**
 
 ```bash
 cp .env.example .env
-# Edit .env and add your key
+# 然后编辑 .env 填密钥
 ```
 
-**Option 3: Enter directly in the Web UI**
+**方式三：Web UI 里直接贴**
 
-If using the Streamlit interface, paste your key in the sidebar. It is used only for your session and never stored.
+Streamlit 界面侧边栏可以输密钥，只存在当前会话里，不会存任何地方。
 
-### Usage
+### 跑起来
 
-#### 🖥️ Web UI (Recommended for first-time users)
-
-Launch the interactive web interface:
+#### Web UI（新手友好）
 
 ```bash
 streamlit run app.py
 ```
 
-Then open http://localhost:8501 in your browser.
+浏览器打开 http://localhost:8501 就行。
 
-Features:
-- Paste text directly, no file handling needed
-- Visual shot preview with expandable scenes
-- Download generated JSON with one click
-- Load example data instantly for testing
+功能：直接粘贴文本、可视化预览镜头、一键下载 JSON、还有示例数据可以直接试。
 
-**Deploy to Streamlit Cloud (free hosting):**
+**免费部署到 Streamlit Cloud**：
 
-1. Fork this repo on GitHub
-2. Go to [share.streamlit.io](https://share.streamlit.io) and connect your GitHub account
-3. Select this repo and click **Deploy**
-4. Share the public URL with anyone — they just need their own API key
+1. GitHub 上 Fork 这个仓库
+2. 去 [share.streamlit.io](https://share.streamlit.io) 连上 GitHub
+3. 选这个仓库点 Deploy
+4. 拿到公开链接，谁都能用 —— 但每个人得自带 API 密钥
 
-#### ⌨️ CLI (For power users & automation)
+#### CLI（老手/自动化）
 
 ```bash
-# Minimal — text only
+# 最简：只给文本
 python main.py --text examples/sample_text.txt
 
-# With character/scene/prop assets
+# 带上角色/场景/道具资产
 python main.py \
   --text examples/sample_text.txt \
   --assets examples/sample_assets.json \
   --output output/ \
   --save-intermediates
 
-# Use a different model
-python main.py \
-  --text examples/sample_text.txt \
-  --model gpt-4-turbo
+# 换模型
+python main.py --text examples/sample_text.txt --model gpt-4-turbo
 ```
 
-### Output
+跑完你会看到类似这样的输出：
 
 ```
-🎬 Starting text → storyboard pipeline
+🎬 开始跑流水线
 ──────────────────────────────────────────────────
-▶ Call 1: Scene group splitting + screenplay rewrite...
-  → 3 scene groups found
-▶ Call 2: Shot splitting...
-  → 7 shots total
-▶ Call 3: Visual description + camera language...
-  → Done
-  → Saved to output/storyboard_final.json
+▶ 调用 1：拆场景 + 改剧本...
+  → 3 个场景组
+▶ 调用 2：拆镜头...
+  → 7 个镜头
+▶ 调用 3：补视觉细节...
+  → 搞定
+  → 已保存到 output/storyboard_final.json
 
-✅ Pipeline complete: 3 scenes, 7 shots
-   Output: output/storyboard_final.json
+✅ 完成：3 个场景，7 个镜头
+   输出：output/storyboard_final.json
 ```
 
 ---
 
-## 🏗️ Architecture
+## 怎么工作的
 
 ```
-Input Text + Assets
+输入文本 + 可选资产
        │
        ▼
 ┌─────────────────┐
-│    Call 1       │  Scene Group Splitting + Screenplay Rewrite
-│                 │  • Detect act/emotional boundaries
-│                 │  • Label narrative arcs (触发/上升/高潮/下降/收束)
-│                 │  • Reformat prose into screenplay lines
+│    调用 1       │  拆场景组 + 改剧本
+│                 │  • 找幕边界和情绪转折点
+│                 │  • 标叙事弧：触发/上升/高潮/下降/收束
+│                 │  • 把散文改成剧本行
 └────────┬────────┘
-         │ scene_list (with screenplay)
+         │ scene_list（带剧本）
          ▼
 ┌─────────────────┐
-│    Call 2       │  Shot Splitting — "能合就合" (Merge-First)
-│                 │  • One shot per behavior event
-│                 │  • Estimate duration; enforce 4–15 s bounds
-│                 │  • Cross-shot closure for events > 15 s
+│    调用 2       │  拆镜头 —— "能合就合"
+│                 │  • 一个行为事件一个镜头
+│                 │  • 估算时长，强制 4–15 秒
+│                 │  • 超 15 秒的跨镜收尾
 └────────┬────────┘
-         │ scene_list (with shot_list)
+         │ scene_list（带 shot_list）
          ▼
 ┌─────────────────┐
-│    Call 3       │  Visual Detail + Camera Language
-│                 │  • 2–5 sub-shots per shot with camera specs
-│                 │  • Content lines (dialogue / narration / sound)
-│                 │  • Scene blocking (top-down spatial snapshot)
-│                 │  • Asset ID binding (character / scene / prop)
+│    调用 3       │  补画面细节 + 镜头语言
+│                 │  • 每镜头拆 2–5 个子镜头，标镜头参数
+│                 │  • 内容行：对白/旁白/音效
+│                 │  • 场景走位：俯视空间快照
+│                 │  • 资产 ID 绑定
 └────────┬────────┘
          │
          ▼
   storyboard_final.json
 ```
 
-### Why three separate calls?
+### 为什么非要拆三次？
 
-Each stage has a distinct cognitive task that benefits from a clean context window and focused system prompt:
+每次调用干一件 focused 的事，上下文干净，不容易跑偏：
 
-| Call | Task | Risk if merged |
-|------|------|----------------|
-| 1 | Narrative segmentation + prose-to-screenplay rewrite | Conflating story structure with shot logic |
-| 2 | Shot splitting with strict timing rules | Over-cutting when visual detail distracts |
-| 3 | Camera language + asset binding | Ignoring shot boundaries already established |
+| 调用 | 干什么 | 如果混在一起会出什么问题 |
+|------|--------|------------------------|
+| 1 | 叙事分段 + 散文改剧本 | 故事结构和镜头逻辑互相干扰 |
+| 2 | 按规则拆镜头 | 视觉细节进来后容易过度切割 |
+| 3 | 镜头语言 + 资产绑定 | 可能无视前面已经定好的镜头边界 |
 
-Separating them produces more consistent, rule-following output — especially on hard constraints (4–15 s duration, merge-first tendency, cross-shot closure rules).
+拆开跑的好处是输出更稳定、更守规矩 —— 尤其那种硬约束（4–15 秒、优先合并、跨镜收尾）不容易被忽略。
 
 ---
 
-## 📄 Asset Format
+## 资产格式
 
-Create a JSON file with character, scene, and prop definitions:
+如果想让输出更精细，可以预定义角色、场景、道具：
 
 ```json
 {
@@ -210,13 +201,13 @@ Create a JSON file with character, scene, and prop definitions:
 }
 ```
 
-Assets are optional — the pipeline works with raw text alone, but providing them enables richer visual descriptions and proper ID binding in Call 3.
+资产是可选的，不给也能跑，但给了之后第三步的画面描述会更丰富，而且资产 ID 能正确绑到输出里，下游直接认。
 
 ---
 
-## 📤 Output Format
+## 输出长什么样
 
-`storyboard_final.json` contains a fully structured storyboard. Abridged example:
+`storyboard_final.json` 的结构大概是：
 
 ```json
 {
@@ -249,48 +240,48 @@ Assets are optional — the pipeline works with raw text alone, but providing th
 }
 ```
 
-### Field Reference
+### 字段速查
 
-| Field | Description |
-|-------|-------------|
-| `llm_scene_code` | Scene group ID (G-01, G-02...) |
-| `narrative_arc` | Scene function: 触发 / 上升 / 高潮 / 下降 / 收束 |
-| `llm_shot_code` | Shot ID (V-01, V-02...), globally continuous |
-| `emotion` | Single keyword: 压抑 / 紧张 / 平静 / 爆发 / 茫然... |
-| `estimated_duration` | Integer seconds, 4–15 (enforced by Call 2) |
-| `content_lines` | Typed audio/dialogue lines: `character`, `narration`, `background_sound`, `anonymous_voice` |
-| `scene_blocking` | Top-down spatial snapshot for set arrangement |
-| `visual_description` | Array of sub-shots with camera language: `[景别·构图·机位·运镜·时长s] 画面描述` |
-| `*_asset_ids` | References to bound assets for downstream rendering |
+| 字段 | 什么意思 |
+|------|----------|
+| `llm_scene_code` | 场景组编号，G-01、G-02... |
+| `narrative_arc` | 这场景在叙事里起什么作用：触发/上升/高潮/下降/收束 |
+| `llm_shot_code` | 镜头编号，V-01、V-02...，全局连续 |
+| `emotion` | 情绪关键词，比如压抑/紧张/平静/爆发/茫然 |
+| `estimated_duration` | 预估秒数，4–15（第二步强制约束） |
+| `content_lines` | 声音/对白行，分 `character`、`narration`、`background_sound`、`anonymous_voice` |
+| `scene_blocking` | 俯视视角的空间安排，给美术和摄影看 |
+| `visual_description` | 子镜头数组，格式：`[景别·构图·机位·运镜·时长s] 画面描述` |
+| `*_asset_ids` | 绑定的资产 ID，下游渲染/生产直接引用 |
 
 ---
 
-## 🔧 CLI Options
+## CLI 参数
 
 ```
 usage: main.py [-h] --text TEXT [--assets ASSETS] [--output OUTPUT]
                [--model MODEL] [--base-url BASE_URL] [--api-key API_KEY]
                [--save-intermediates]
 
-Convert novel text to structured storyboard via 3-call LLM pipeline
+通过三调用 LLM 流水线把小说文本转结构化分镜
 
 options:
-  -h, --help            show this help message and exit
-  --text TEXT           Path to the input text file (.txt)
-  --assets ASSETS       Path to assets JSON file
-  --output OUTPUT       Output directory (default: ./output/)
-  --model MODEL         LLM model to use (default: gpt-4o)
-  --base-url BASE_URL   Custom API base URL
-  --api-key API_KEY     API key (defaults to OPENAI_API_KEY env var)
-  --save-intermediates  Also save call1 and call2 intermediate results
+  -h, --help            显示帮助并退出
+  --text TEXT           输入文本文件路径（.txt）
+  --assets ASSETS       资产 JSON 文件路径
+  --output OUTPUT       输出目录，默认 ./output/
+  --model MODEL         LLM 模型，默认 gpt-4o
+  --base-url BASE_URL   自定义 API base URL
+  --api-key API_KEY     API 密钥，默认读 OPENAI_API_KEY 环境变量
+  --save-intermediates  同时保存调用 1 和 2 的中间结果
 ```
 
 ---
 
-## 🧪 Development
+## 开发
 
 ```bash
-# Run dry validation (no API calls)
+# 空跑验证（不耗 API）
 python3 -c "
 import sys; sys.path.insert(0, 'src')
 from pipeline import load_prompt, extract_json
@@ -306,37 +297,37 @@ print('All prompt templates loaded successfully')
 
 ---
 
-## 🗺️ Roadmap
+## 路线图
 
-- [ ] Support multi-chapter / long-form novel batch processing
-- [ ] Add JSON Schema validation for intermediate outputs
-- [ ] Support non-OpenAI providers (Claude, Gemini) natively
-- [ ] Add `--format` option for output (JSON / CSV / FCPXML)
-- [x] Web UI for interactive editing of generated storyboards
-- [ ] Integration with ComfyUI / Stable Video Diffusion workflows
-
----
-
-## 🤝 Contributing
-
-Contributions are welcome. Please open an issue first to discuss major changes.
-
-1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
+- [ ] 支持多章节/长篇小说的批量处理
+- [ ] 给中间输出加 JSON Schema 校验
+- [ ] 原生支持 Claude、Gemini 等非 OpenAI 服务商
+- [ ] 输出格式可选 JSON / CSV / FCPXML
+- [x] 可视化 Web UI，支持交互式编辑生成结果
+- [ ] 接入 ComfyUI / Stable Video Diffusion 工作流
 
 ---
 
-## 📝 License
+## 想贡献？
 
-This project is licensed under the MIT License — see the [LICENSE](LICENSE) file for details.
+欢迎。大改动请先开 Issue 聊聊。
+
+1. Fork 仓库
+2. 切分支：`git checkout -b feature/你想加的东西`
+3. 提交：`git commit -m 'Add ...'`
+4. 推送：`git push origin feature/你想加的东西`
+5. 开 Pull Request
 
 ---
 
-## 🙏 Acknowledgments
+## 许可证
 
-This project operationalizes the **文本→分镜→AI视频** production pipeline used in short-drama content industrialization. The three-stage prompting strategy is designed around the practical constraints of AI video generation models (clip duration limits, asset consistency requirements) and professional animation pre-production workflows.
+MIT —— 详见 [LICENSE](LICENSE)。
+
+---
+
+## 致谢
+
+这个项目把 **文本→分镜→AI视频** 的工业化流程做成了工程工具。三段式提示策略是基于 AI 视频生成模型的实际限制（片段时长、资产一致性）和专业动画前期流程设计的。
 
 Built with ❤️ for AI-native content creation.

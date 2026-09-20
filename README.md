@@ -1,3 +1,5 @@
+> **项目状态**：Active · **项目类型**：正式产品 · **开发分支**：develop · **稳定分支**：main
+
 <div align="center">
 
 <h1>📖 → 🎬 novel-to-storyboard</h1>
